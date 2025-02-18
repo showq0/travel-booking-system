@@ -1,10 +1,9 @@
 from django import forms
-from bookings.models import Booking,JSONSchema
+from bookings.models import Booking, JSONSchema
 from bookings.constants import SchemaCodes
 from django_jsonform.validators import JSONSchemaValidator, JSONSchemaValidationError
 import json
 from django_jsonform.forms.fields import JSONFormField
-# from jsoneditor.forms import JSONEditor
 
 
 class BookingForm(forms.ModelForm):
@@ -25,18 +24,28 @@ class BookingForm(forms.ModelForm):
             temp_data = self.instance.hotel_details
 
         if temp_data is None:
-            schema = JSONSchema.objects.filter(
-                name=SchemaCodes.hotel_details_schema).last().schema
+            schema_obj = JSONSchema.objects.filter(name=SchemaCodes.hotel_details_schema).last()
+            if schema_obj:
+                schema = schema_obj.schema
+
 
         if temp_data is not None:
-            schema = JSONSchema.objects.get(
-                name=SchemaCodes.hotel_details_schema, version=self.instance.hotel_details_schema_version).schema
             try:
+                schema_obj = JSONSchema.objects.get(name=SchemaCodes.hotel_details_schema,
+                                                    version=self.instance.hotel_details_schema_version)
+                schema = schema_obj.schema
+
                 validator = JSONSchemaValidator(schema)
                 validator(temp_data)
+            except JSONSchema.DoesNotExist as e:
+                self.fields['hotel_details'].help_text += (
+                        "<p style='color:#B00020;'> <strong> this form doesnt exist "
+                        " || the data is" + json.dumps(temp_data) + "</strong>:</p>"
+                )
             except JSONSchemaValidationError as e:
                 self.fields['hotel_details'].help_text += (
-                        "<p style='color:#B00020;'> <strong>" + ", ".join(e.messages) + " || the data is" + json.dumps(temp_data) + "</strong>:</p>"
+                        "<p style='color:#B00020;'> <strong>" + ", ".join(e.messages) +
+                        " || the data is" + json.dumps(temp_data) + "</strong>:</p>"
                 )
 
         self.fields['hotel_details'].widget.schema = schema
@@ -44,9 +53,9 @@ class BookingForm(forms.ModelForm):
     def save(self, commit=True):
         super().clean()
         instance = super().save(commit=False)
-
-        instance.hotel_details_schema_version = JSONSchema.objects.filter(
-                name=SchemaCodes.hotel_details_schema).last().version
+        schema_obj = JSONSchema.objects.filter(name=SchemaCodes.hotel_details_schema).last()
+        if schema_obj:
+            instance.hotel_details_schema_version = schema_obj.version
 
         if commit:
             instance.save()
