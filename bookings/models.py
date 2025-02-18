@@ -5,6 +5,8 @@ from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from datetime import date
 
+from bookings.constants import SchemaCodes
+
 PENDING = 'pending'
 CONFIRMED = 'confirmed'
 CANCELLED = 'cancelled'
@@ -49,6 +51,7 @@ class Booking(models.Model):
         choices=STATUS_CHOICES,
         default=PENDING)
     hotel_details = models.JSONField(default={})
+    hotel_details_schema_version = models.IntegerField(default=1)
 
     class Meta:
         unique_together = ['user', 'travel_package']
@@ -62,4 +65,14 @@ class Booking(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
+
+
+class JSONSchema(models.Model):
+    name = models.CharField(choices=SchemaCodes.choices, max_length=50)
+    version = models.AutoField(primary_key=True)
+    schema = models.JSONField(default={})
+
+    class Meta:
+        unique_together = ['version', 'name']
+
 
