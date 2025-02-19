@@ -28,7 +28,6 @@ class BookingForm(forms.ModelForm):
             if schema_obj:
                 schema = schema_obj.schema
 
-
         if temp_data is not None:
             try:
                 schema_obj = JSONSchema.objects.get(name=SchemaCodes.hotel_details_schema,
@@ -53,8 +52,9 @@ class BookingForm(forms.ModelForm):
     def save(self, commit=True):
         super().clean()
         instance = super().save(commit=False)
-        schema_obj = JSONSchema.objects.filter(name=SchemaCodes.hotel_details_schema).last()
-        if schema_obj:
+
+        if instance.pk is None:  # create new object
+            schema_obj = JSONSchema.objects.filter(name=SchemaCodes.hotel_details_schema).last()
             instance.hotel_details_schema_version = schema_obj.version
 
         if commit:
