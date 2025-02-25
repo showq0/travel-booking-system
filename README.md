@@ -4,7 +4,8 @@
 
 ## **Overview**
 
-The **Travel Book System** is a Django-based application that allows users to book travel packages. Users can browse available packages, make bookings, and track their booking status.
+The **Travel Book System** is a Django-based application for booking travel packages. Users can browse available packages, make bookings, and track their booking status.
+It supports bulk deletion, allows flexible schema changes without breaking existing data (lazy migration), and prevents race conditions using database locking mechanisms.
 
 ## **Features**
 
