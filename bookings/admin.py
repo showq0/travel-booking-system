@@ -7,6 +7,10 @@ from bookings.forms import BookingForm
 class BookingAdmin(admin.ModelAdmin):
     form = BookingForm
 
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            obj.delete()
+
 
 admin.site.register(Booking, BookingAdmin)
 admin.site.register(TravelPackage)

@@ -25,7 +25,8 @@ def validate_travel_date(value):
 class TravelPackage(models.Model):
     destination = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=10, decimal_places=2)
-    available_slot = models.IntegerField(validators=[MaxValueValidator(440), MinValueValidator(0,message="There is no seat available.")], )
+    available_slot = models.IntegerField(
+        validators=[MaxValueValidator(440), MinValueValidator(0, message="There is no seat available.")], )
     travel_date = models.DateField(validators=[validate_travel_date])
 
     def __str__(self):
@@ -87,8 +88,8 @@ class Booking(models.Model):
 
     def delete(self, *args, **kwargs):
         # Restore slot when a booking is deleted only if confirmed
-        if self.status == CONFIRMED:
-            with transaction.atomic():
+        with transaction.atomic():
+            if self.status == CONFIRMED:
                 travel_package = TravelPackage.objects.select_for_update().get(pk=self.travel_package.pk)
                 travel_package.available_slot += 1
                 travel_package.save()
